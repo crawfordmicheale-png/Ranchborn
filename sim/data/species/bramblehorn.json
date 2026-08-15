@@ -1,0 +1,354 @@
+{
+  "id": "bramblehorn",
+  "name": "Bramblehorn",
+  "creatureType": "Horned grazer",
+  "baseStats": { "might": 32, "agility": 26, "focus": 30, "heart": 34, "instinct": 28 },
+  "statVariance": 3,
+  "affinities": ["bloom", "stone"],
+  "mutationRate": 0.02,
+
+  "_note": "Trait slots follow game-bible.md §17.1. Dominance is a rank, not a probability: the higher rank is what you see, the lower rank is what the monster quietly carries. Four alleles are deliberately recessive (build_compact, horn_stub, head_fine, pattern_none) so a bloodline can hide them for generations and have them resurface in a grandchild (§17.2). The Sunorchard Bramblehorn from §18.2 is reachable: blossom antlers + pale moss coat + gold facial stripe + compact body.",
+
+  "slots": [
+    {
+      "id": "bodyBuild",
+      "label": "Body build",
+      "expression": "dominant",
+      "alleles": [
+        {
+          "id": "build_broad",
+          "label": "Broad",
+          "dominance": 30,
+          "weight": 25,
+          "value": "broad",
+          "statMods": { "might": 8, "agility": -6 }
+        },
+        {
+          "id": "build_standard",
+          "label": "Standard",
+          "dominance": 20,
+          "weight": 45,
+          "value": "standard"
+        },
+        {
+          "id": "build_compact",
+          "label": "Compact",
+          "dominance": 10,
+          "weight": 30,
+          "value": "compact",
+          "statMods": { "agility": 6, "might": -4 }
+        }
+      ]
+    },
+
+    {
+      "id": "headShape",
+      "label": "Head shape",
+      "expression": "dominant",
+      "alleles": [
+        {
+          "id": "head_broad",
+          "label": "Broad muzzle",
+          "dominance": 40,
+          "weight": 20,
+          "value": "broad",
+          "statMods": { "might": 2, "instinct": -1 }
+        },
+        {
+          "id": "head_long",
+          "label": "Long muzzle",
+          "dominance": 30,
+          "weight": 30,
+          "value": "long",
+          "statMods": { "instinct": 3, "focus": -1 }
+        },
+        {
+          "id": "head_round",
+          "label": "Round",
+          "dominance": 20,
+          "weight": 35,
+          "value": "round",
+          "statMods": { "heart": 2 }
+        },
+        {
+          "id": "head_fine",
+          "label": "Fine",
+          "dominance": 10,
+          "weight": 15,
+          "value": "fine",
+          "statMods": { "focus": 3, "might": -2 }
+        }
+      ]
+    },
+
+    {
+      "id": "ears",
+      "label": "Ears",
+      "expression": "dominant",
+      "alleles": [
+        {
+          "id": "ear_tufted",
+          "label": "Tufted",
+          "dominance": 40,
+          "weight": 20,
+          "value": "tufted",
+          "statMods": { "instinct": 3 }
+        },
+        {
+          "id": "ear_leaf",
+          "label": "Leaf",
+          "dominance": 30,
+          "weight": 30,
+          "value": "leaf",
+          "statMods": { "instinct": 2, "heart": 1 }
+        },
+        {
+          "id": "ear_round",
+          "label": "Round",
+          "dominance": 20,
+          "weight": 30,
+          "value": "round",
+          "statMods": { "heart": 2 }
+        },
+        {
+          "id": "ear_drooped",
+          "label": "Drooped",
+          "dominance": 10,
+          "weight": 20,
+          "value": "drooped",
+          "statMods": { "heart": 3, "agility": -1 }
+        }
+      ]
+    },
+
+    {
+      "id": "horns",
+      "label": "Horns",
+      "expression": "dominant",
+      "alleles": [
+        {
+          "id": "horn_broad",
+          "label": "Broad sweep",
+          "dominance": 40,
+          "weight": 20,
+          "value": "broad",
+          "statMods": { "might": 5, "agility": -2, "heart": -1 }
+        },
+        {
+          "id": "horn_blossom",
+          "label": "Blossom antlers",
+          "dominance": 35,
+          "weight": 0,
+          "value": "blossom",
+          "mutation": true,
+          "statMods": { "heart": 6, "focus": 2, "might": -2 }
+        },
+        {
+          "id": "horn_curved",
+          "label": "Curved",
+          "dominance": 30,
+          "weight": 30,
+          "value": "curved",
+          "statMods": { "might": 2, "focus": 1 }
+        },
+        {
+          "id": "horn_straight",
+          "label": "Straight",
+          "dominance": 20,
+          "weight": 25,
+          "value": "straight",
+          "statMods": { "focus": 3 }
+        },
+        {
+          "id": "horn_stub",
+          "label": "Stub",
+          "dominance": 10,
+          "weight": 15,
+          "value": "stub",
+          "statMods": { "agility": 4, "might": -3 }
+        }
+      ]
+    },
+
+    {
+      "id": "tail",
+      "label": "Tail",
+      "expression": "dominant",
+      "alleles": [
+        {
+          "id": "tail_tuft",
+          "label": "Tufted",
+          "dominance": 30,
+          "weight": 40,
+          "value": "tuft",
+          "statMods": { "heart": 1 }
+        },
+        {
+          "id": "tail_long",
+          "label": "Long",
+          "dominance": 20,
+          "weight": 35,
+          "value": "long",
+          "statMods": { "agility": 3, "might": -1 }
+        },
+        {
+          "id": "tail_short",
+          "label": "Short",
+          "dominance": 10,
+          "weight": 25,
+          "value": "short",
+          "statMods": { "might": 1, "agility": -1 }
+        }
+      ]
+    },
+
+    {
+      "id": "coatPrimary",
+      "label": "Coat colour",
+      "expression": "blended",
+      "alleles": [
+        { "id": "coat_moss", "label": "Moss", "dominance": 10, "weight": 25, "value": "#7d9b62" },
+        {
+          "id": "coat_pale_moss",
+          "label": "Pale moss",
+          "dominance": 10,
+          "weight": 15,
+          "value": "#c2d3a4"
+        },
+        { "id": "coat_bark", "label": "Bark", "dominance": 10, "weight": 20, "value": "#96754f" },
+        { "id": "coat_cream", "label": "Cream", "dominance": 10, "weight": 15, "value": "#e6d7b8" },
+        { "id": "coat_slate", "label": "Slate", "dominance": 10, "weight": 12, "value": "#828e96" },
+        {
+          "id": "coat_russet",
+          "label": "Russet",
+          "dominance": 10,
+          "weight": 13,
+          "value": "#b57244"
+        }
+      ]
+    },
+
+    {
+      "id": "coatSecondary",
+      "label": "Underside colour",
+      "expression": "blended",
+      "alleles": [
+        {
+          "id": "under_cream",
+          "label": "Cream",
+          "dominance": 10,
+          "weight": 35,
+          "value": "#f0e6cd"
+        },
+        { "id": "under_sand", "label": "Sand", "dominance": 10, "weight": 25, "value": "#dcc9a0" },
+        { "id": "under_dust", "label": "Dust", "dominance": 10, "weight": 20, "value": "#c9c2b4" },
+        { "id": "under_clay", "label": "Clay", "dominance": 10, "weight": 20, "value": "#c99a72" }
+      ]
+    },
+
+    {
+      "id": "pattern",
+      "label": "Coat pattern",
+      "expression": "dominant",
+      "alleles": [
+        {
+          "id": "pattern_moonlit",
+          "label": "Moonlit markings",
+          "dominance": 60,
+          "weight": 0,
+          "value": "moonlit",
+          "mutation": true,
+          "statMods": { "instinct": 3, "heart": 1 }
+        },
+        {
+          "id": "pattern_gold_stripe",
+          "label": "Gold facial stripe",
+          "dominance": 50,
+          "weight": 8,
+          "value": "gold_stripe",
+          "statMods": { "heart": 2 }
+        },
+        {
+          "id": "pattern_stripe",
+          "label": "Striped",
+          "dominance": 40,
+          "weight": 15,
+          "value": "stripe"
+        },
+        {
+          "id": "pattern_dapple",
+          "label": "Dappled",
+          "dominance": 30,
+          "weight": 20,
+          "value": "dapple"
+        },
+        {
+          "id": "pattern_patch",
+          "label": "Patched",
+          "dominance": 20,
+          "weight": 22,
+          "value": "patch"
+        },
+        {
+          "id": "pattern_none",
+          "label": "Plain",
+          "dominance": 10,
+          "weight": 35,
+          "value": "none"
+        }
+      ]
+    },
+
+    {
+      "id": "surface",
+      "label": "Coat surface",
+      "expression": "environmental",
+      "alleles": [
+        { "id": "surface_plain", "label": "Plain", "dominance": 10, "weight": 70, "value": "plain" },
+        {
+          "id": "surface_mossy",
+          "label": "Moss-grown",
+          "dominance": 10,
+          "weight": 30,
+          "value": "mossy",
+          "requiresHabitat": "orchard",
+          "statMods": { "heart": 2, "might": 1 }
+        }
+      ]
+    },
+
+    {
+      "id": "accent",
+      "label": "Elemental accent",
+      "expression": "co-expressed",
+      "alleles": [
+        { "id": "accent_none", "label": "None", "dominance": 10, "weight": 55, "value": "none" },
+        {
+          "id": "accent_bloom",
+          "label": "Bloom",
+          "dominance": 10,
+          "weight": 25,
+          "value": "bloom",
+          "statMods": { "heart": 3, "instinct": 1 }
+        },
+        {
+          "id": "accent_stone",
+          "label": "Stone",
+          "dominance": 10,
+          "weight": 20,
+          "value": "stone",
+          "statMods": { "might": 4, "agility": -2 }
+        },
+        {
+          "id": "accent_glow",
+          "label": "Spirit glow",
+          "dominance": 10,
+          "weight": 0,
+          "value": "glow",
+          "mutation": true,
+          "statMods": { "instinct": 4, "heart": 2 }
+        }
+      ]
+    }
+  ]
+}
