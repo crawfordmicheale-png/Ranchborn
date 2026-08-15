@@ -12,14 +12,57 @@ mentor, racer, or fighter.
 
 ## Status
 
-Pre-production. This repository currently holds design documentation only — no
-engine or client code yet.
+Pre-production. No engine has been chosen yet. What exists is the design bible
+plus a browser prototype of the genetics and breeding systems, built to test the
+central hook before committing to an engine.
+
+## Quick start
+
+```bash
+npm install
+npm test          # 37 tests covering inheritance, expression, and pairing rules
+npm run serve     # then open http://localhost:8123/
+```
+
+Once the prototype is open, click **Set up carrier lineage**, then **Pair and
+hatch** a dozen times. Roughly a quarter of the hatchlings will show stub horns
+that neither parent has — a trait that skipped a generation and came back from
+the grandparents. That is the game's central promise, working.
+
+`npm run variant-sheet` renders every trait variant to `dist/variant-sheet.html`
+for art review.
 
 ## Documentation
 
 | Document | Contents |
 |---|---|
 | [Game Bible v0.1](docs/design/game-bible.md) | The complete design document: pillars, systems, species, genetics, art and audio direction, scope, and milestones. |
+| [Simulation core](sim/README.md) | How the genetics model works, and the design decisions the bible left open. |
+
+## Code
+
+| Path | Contents |
+|---|---|
+| `sim/` | Engine-agnostic genetics and breeding core, plus species data as editable JSON (§37.1). No DOM, no dependencies. |
+| `prototype/` | Browser prototype: SVG monsters rendered from genotype, a pairing forecast, and a family tree. |
+| `scripts/` | Static file server and the variant contact sheet. |
+
+The simulation core is deliberately free of any engine or browser dependency, so
+choosing Unity or Godot later means porting pure functions and reusing the JSON
+species data as-is. The SVG renderer is a stand-in for the real art, but it is
+built the way §30.3 describes the 3D pipeline — one shared body, swappable
+parts, pattern masks over a palette — so what the prototype proves about
+inheritance carries over.
+
+### What is and is not modelled
+
+Built: trait slots and alleles, the four expression modes, mutation, stat
+potential and the §17.5 tradeoffs, personality axes and quirks, pairing rules,
+relatedness, the offspring forecast, family trees, ranch days, life stages.
+
+Not built: ranch jobs, needs decay, competitions, the economy, breed
+registration, automation, story. The prototype answers one question — whether
+inherited traits read on screen — and stops there.
 
 ### Where to start
 
