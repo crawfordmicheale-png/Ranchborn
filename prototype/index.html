@@ -96,6 +96,35 @@
         main { grid-template-columns: minmax(0, 1fr); }
       }
 
+      /* Orientation for a cold open: this page has to explain itself. */
+      .guide {
+        position: relative;
+        background: #fffaf0;
+        border: 2px solid var(--line);
+        border-left: 6px solid var(--meadow);
+        border-radius: var(--radius);
+        padding: 14px 44px 14px 16px;
+        margin-bottom: 18px;
+        box-shadow: var(--shadow);
+      }
+      .guide h2 { margin-bottom: 6px; }
+      .guide p { margin: 0 0 8px; font-size: 0.88rem; max-width: 68ch; }
+      .guide ol { margin: 0; padding-left: 20px; font-size: 0.88rem; max-width: 68ch; }
+      .guide li { margin-bottom: 4px; }
+      .guide li::marker { color: var(--meadow); font-weight: 700; }
+      .dismiss {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        line-height: 1;
+        font-size: 1.1rem;
+        border-radius: 8px;
+        color: var(--ink-soft);
+      }
+
       .count { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--ink-soft); }
       .hint { color: var(--ink-soft); font-size: 0.85rem; margin: 4px 0 10px; }
       .mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.78rem; }

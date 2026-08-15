@@ -29,6 +29,17 @@ hatch** a dozen times. Roughly a quarter of the hatchlings will show stub horns
 that neither parent has — a trait that skipped a generation and came back from
 the grandparents. That is the game's central promise, working.
 
+### Just want to look at it?
+
+```bash
+npm install && npm run bundle
+```
+
+That writes `dist/ranchborn-nursery.html` — a single self-contained file with
+the code, styles, and species data inlined. Open it directly in a browser. No
+server, no network, nothing to install on the machine you open it on, so it can
+be emailed to a playtester or opened on a phone.
+
 `npm run variant-sheet` renders every trait variant to `dist/variant-sheet.html`
 for art review.
 
@@ -45,7 +56,7 @@ for art review.
 |---|---|
 | `sim/` | Engine-agnostic genetics and breeding core, plus species data as editable JSON (§37.1). No DOM, no dependencies. |
 | `prototype/` | Browser prototype: SVG monsters rendered from genotype, a pairing forecast, and a family tree. |
-| `scripts/` | Static file server and the variant contact sheet. |
+| `scripts/` | Static file server, the standalone bundler, and the variant contact sheet. |
 
 The simulation core is deliberately free of any engine or browser dependency, so
 choosing Unity or Godot later means porting pure functions and reusing the JSON

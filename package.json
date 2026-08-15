@@ -8,10 +8,12 @@
     "build": "tsc",
     "test": "tsc && node --test \"dist/sim/test/**/*.test.js\"",
     "serve": "npm run build && node scripts/serve.js",
+    "bundle": "node scripts/bundle.js",
     "variant-sheet": "npm run build && node scripts/variant-sheet.js"
   },
   "devDependencies": {
     "@types/node": "^26.2.0",
+    "esbuild": "^0.28.2",
     "typescript": "^5.9.2"
   },
   "engines": {
