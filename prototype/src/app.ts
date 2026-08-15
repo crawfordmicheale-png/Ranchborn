@@ -33,6 +33,7 @@ interface State {
   inspecting: string | null;
   habitat: string;
   advanced: boolean;
+  showGuide: boolean;
   ranchDay: number;
   log: string[];
 }
@@ -362,6 +363,24 @@ function render(): void {
 
     <main>
       <section class="roster">
+        ${
+          state.showGuide
+            ? `<div class="guide">
+                 <button class="dismiss" data-action="dismiss-guide" aria-label="Dismiss">×</button>
+                 <h2>What this is</h2>
+                 <p>Every monster here is drawn from its own genotype. Nothing is hand-authored —
+                    change the genes and the picture changes with them. To see the point of it:</p>
+                 <ol>
+                   <li>Press <strong>Set up carrier lineage</strong>. It seeds two unrelated families
+                       whose grandparents had stub horns.</li>
+                   <li>Press <strong>Pair and hatch</strong> a dozen times. Both parents have broad
+                       horns, so every hatchling should too.</li>
+                   <li>Watch for a hatchling with <strong>stub horns</strong> — a trait neither parent
+                       has, back from its grandparents. Roughly one in four.</li>
+                 </ol>
+               </div>`
+            : ''
+        }
         <h2>The ranch <span class="count">${state.order.length} monsters</span></h2>
         <p class="hint">Tap a monster to set Parent A, then another for Parent B. Tap again to inspect.</p>
         <div class="grid">
@@ -530,9 +549,34 @@ function carrierDemo(): void {
 // Boot
 // ---------------------------------------------------------------------------
 
-async function boot(): Promise<void> {
+/**
+ * Species data source.
+ *
+ * The standalone build (`npm run bundle`) inlines the JSON on `globalThis` so
+ * the page opens straight from a file with no server and no network. Served
+ * from `npm run serve`, it fetches the same file from disk instead, so editing
+ * species data during development needs no rebuild.
+ */
+declare global {
+  // eslint-disable-next-line no-var
+  var __RANCHBORN_SPECIES__: unknown | undefined;
+}
+
+async function loadSpeciesData(): Promise<unknown> {
+  if (globalThis.__RANCHBORN_SPECIES__ !== undefined) {
+    return globalThis.__RANCHBORN_SPECIES__;
+  }
   const response = await fetch('/sim/data/species/bramblehorn.json');
-  const species = parseSpecies(await response.json(), 'bramblehorn');
+  if (!response.ok) {
+    throw new Error(
+      `could not load species data (${response.status}). Run "npm run serve" from the repo root.`,
+    );
+  }
+  return response.json();
+}
+
+async function boot(): Promise<void> {
+  const species = parseSpecies(await loadSpeciesData(), 'bramblehorn');
 
   state = {
     species,
@@ -543,6 +587,7 @@ async function boot(): Promise<void> {
     inspecting: null,
     habitat: 'homestead',
     advanced: false,
+    showGuide: true,
     ranchDay: 1,
     log: [],
   };
@@ -577,6 +622,10 @@ async function boot(): Promise<void> {
         break;
       case 'carrier-demo':
         carrierDemo();
+        break;
+      case 'dismiss-guide':
+        state.showGuide = false;
+        render();
         break;
       default:
         break;
