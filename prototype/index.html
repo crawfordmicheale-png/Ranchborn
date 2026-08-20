@@ -238,6 +238,82 @@
       .stats span { color: var(--ink-soft); text-transform: capitalize; }
       .quirks { margin: 0; padding-left: 18px; font-size: 0.78rem; color: var(--ink-soft); }
 
+      /* ---- Species and breed identity ---- */
+      .species-tag {
+        display: inline-block;
+        background: var(--meadow);
+        color: #fff;
+        border-radius: 999px;
+        padding: 1px 7px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        margin-right: 3px;
+      }
+      .crest {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        width: 26px;
+        height: 26px;
+        display: grid;
+        place-items: center;
+        background: var(--gold);
+        color: #fff;
+        border-radius: 999px;
+        font-size: 0.9rem;
+        z-index: 1;
+        box-shadow: var(--shadow);
+      }
+      .rescue { display: inline-flex; gap: 4px; align-items: center; font-size: 0.85rem; color: var(--ink-soft); }
+      .rescue button { padding: 5px 9px; font-size: 0.8rem; }
+
+      /* ---- Registry ---- */
+      .registry h4, .breed-card h4 { margin: 12px 0 5px; }
+      .hallmarks { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; font-size: 0.8rem; }
+      .hallmarks li { display: flex; justify-content: space-between; gap: 8px; }
+      .hallmarks li span { color: var(--ink-soft); }
+      .standard-line { margin: 0; font-size: 0.82rem; color: var(--meadow); font-weight: 600; }
+
+      .requirements { list-style: none; margin: 0; padding: 0; font-size: 0.8rem; }
+      .requirements li {
+        display: grid;
+        grid-template-columns: 18px 1fr auto;
+        gap: 6px;
+        align-items: baseline;
+        padding: 3px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .requirements .tick { font-weight: 700; }
+      .requirements .met .tick { color: var(--meadow); }
+      .requirements .unmet .tick { color: var(--ink-soft); }
+      .requirements .unmet .req-label { color: var(--ink-soft); }
+      .requirements .req-detail { color: var(--ink-soft); font-variant-numeric: tabular-nums; font-size: 0.76rem; }
+
+      .register-form { display: grid; gap: 6px; margin-top: 12px; }
+      .register-form input {
+        font: inherit;
+        padding: 8px 10px;
+        border: 2px solid var(--line);
+        border-radius: 10px;
+        background: var(--paper);
+        color: var(--ink);
+      }
+      .register-form input:disabled { opacity: 0.55; }
+      .register-form button:disabled { opacity: 0.5; cursor: not-allowed; }
+      .register-form button.primary { margin-top: 0; }
+
+      .breed-card { background: #fdf6e4; border: 2px solid var(--gold); border-radius: var(--radius); padding: 12px; }
+      .breed-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+      .breed-head h3 { margin: 0; }
+      .breed-crest {
+        width: 40px; height: 40px; display: grid; place-items: center;
+        background: var(--gold); color: #fff; border-radius: 12px; font-size: 1.3rem;
+      }
+      .rank { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+      .rank-emerging { color: var(--ink-soft); }
+      .rank-recognized { color: var(--meadow); }
+      .rank-heritage { color: var(--barn); }
+
       .log ul { list-style: none; margin: 0; padding: 0; font-size: 0.78rem; color: var(--ink-soft); }
       .log li { padding: 3px 0; border-bottom: 1px solid var(--line); }
 

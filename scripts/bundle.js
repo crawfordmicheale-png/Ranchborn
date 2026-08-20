@@ -18,7 +18,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
-const speciesId = 'bramblehorn';
+const SPECIES_IDS = ['bramblehorn', 'cinderpup', 'puddlekin'];
 
 // Bundle to an IIFE, not an ES module: modules are blocked by CORS over
 // file://, which would defeat the entire point of a standalone build.
@@ -35,7 +35,10 @@ const bundled = await build({
 
 const script = bundled.outputFiles[0].text;
 
-const speciesJson = await readFile(`${root}sim/data/species/${speciesId}.json`, 'utf8');
+const speciesEntries = await Promise.all(
+  SPECIES_IDS.map(async (id) => [id, JSON.parse(await readFile(`${root}sim/data/species/${id}.json`, 'utf8'))]),
+);
+const speciesJson = JSON.stringify(Object.fromEntries(speciesEntries));
 
 // Reuse the stylesheet from the served page so there is one source of truth.
 const shell = await readFile(`${root}prototype/index.html`, 'utf8');
@@ -58,7 +61,7 @@ ${styles}
 
 <script>
 // Species data inlined so the page needs no server and no network.
-globalThis.__RANCHBORN_SPECIES__ = ${speciesJson.trim()};
+globalThis.__RANCHBORN_SPECIES__ = ${speciesJson};
 </script>
 <script>
 ${script}
@@ -70,4 +73,4 @@ const out = `${root}dist/ranchborn-nursery.html`;
 await writeFile(out, html, 'utf8');
 
 const kb = (Buffer.byteLength(html, 'utf8') / 1024).toFixed(1);
-console.log(`wrote ${out} (${kb} KB, self-contained)`);
+console.log(`wrote ${out} (${kb} KB, self-contained, ${SPECIES_IDS.length} species)`);

@@ -1,0 +1,125 @@
+{
+  "id": "puddlekin",
+  "name": "Puddlekin",
+  "creatureType": "Amphibious gatherer",
+  "baseStats": { "might": 26, "agility": 32, "focus": 30, "heart": 28, "instinct": 34 },
+  "statVariance": 3,
+  "affinities": ["tide", "bloom"],
+  "mutationRate": 0.02,
+
+  "_note": "Puddlekin trades horns and manes for frills and fins. Its environmental slot keys off the wetlands rather than the orchard, so the same mechanism produces a different visible adaptation per species (§17.2, §17.4). Recessives: build_slim, frill_smooth, fin_none, pattern_none.",
+
+  "slots": [
+    {
+      "id": "bodyBuild",
+      "label": "Body build",
+      "expression": "dominant",
+      "alleles": [
+        { "id": "build_round", "label": "Round", "dominance": 30, "weight": 28, "value": "round", "statMods": { "might": 6, "agility": -4 } },
+        { "id": "build_standard", "label": "Standard", "dominance": 20, "weight": 44, "value": "standard" },
+        { "id": "build_slim", "label": "Slim", "dominance": 10, "weight": 28, "value": "slim", "statMods": { "agility": 7, "might": -4 } }
+      ]
+    },
+    {
+      "id": "headShape",
+      "label": "Head shape",
+      "expression": "dominant",
+      "alleles": [
+        { "id": "head_wide", "label": "Wide", "dominance": 40, "weight": 24, "value": "wide", "statMods": { "might": 2, "heart": 1 } },
+        { "id": "head_domed", "label": "Domed", "dominance": 30, "weight": 30, "value": "domed", "statMods": { "focus": 3 } },
+        { "id": "head_flat", "label": "Flat", "dominance": 20, "weight": 28, "value": "flat", "statMods": { "instinct": 3 } },
+        { "id": "head_tapered", "label": "Tapered", "dominance": 10, "weight": 18, "value": "tapered", "statMods": { "agility": 3, "might": -1 } }
+      ]
+    },
+    {
+      "id": "frills",
+      "label": "Cheek frills",
+      "expression": "dominant",
+      "alleles": [
+        { "id": "frill_fan", "label": "Fanned", "dominance": 40, "weight": 24, "value": "fan", "statMods": { "instinct": 3, "agility": -1 } },
+        { "id": "frill_feathered", "label": "Feathered", "dominance": 30, "weight": 28, "value": "feathered", "statMods": { "heart": 3 } },
+        { "id": "frill_spined", "label": "Spined", "dominance": 20, "weight": 26, "value": "spined", "statMods": { "might": 3, "heart": -1 } },
+        { "id": "frill_smooth", "label": "Smooth", "dominance": 10, "weight": 22, "value": "smooth", "statMods": { "agility": 4, "might": -1 } }
+      ]
+    },
+    {
+      "id": "fins",
+      "label": "Fins",
+      "expression": "dominant",
+      "alleles": [
+        { "id": "fin_crested", "label": "Crested", "dominance": 40, "weight": 22, "value": "crested", "statMods": { "agility": 4, "focus": 1 } },
+        { "id": "fin_crystal", "label": "Crystal fins", "dominance": 35, "weight": 0, "value": "crystal", "mutation": true, "statMods": { "focus": 5, "instinct": 3, "might": -1 } },
+        { "id": "fin_dorsal", "label": "Dorsal", "dominance": 30, "weight": 28, "value": "dorsal", "statMods": { "agility": 3 } },
+        { "id": "fin_paired", "label": "Paired", "dominance": 20, "weight": 26, "value": "paired", "statMods": { "instinct": 2, "agility": 1 } },
+        { "id": "fin_none", "label": "Finless", "dominance": 10, "weight": 24, "value": "none", "statMods": { "might": 3, "agility": -2 } }
+      ]
+    },
+    {
+      "id": "tail",
+      "label": "Tail",
+      "expression": "dominant",
+      "alleles": [
+        { "id": "tail_paddle", "label": "Paddle", "dominance": 30, "weight": 38, "value": "paddle", "statMods": { "agility": 3, "might": 1 } },
+        { "id": "tail_long", "label": "Long", "dominance": 20, "weight": 34, "value": "long", "statMods": { "agility": 2 } },
+        { "id": "tail_stub", "label": "Stub", "dominance": 10, "weight": 28, "value": "stub", "statMods": { "might": 2, "agility": -2 } }
+      ]
+    },
+    {
+      "id": "coatPrimary",
+      "label": "Skin colour",
+      "expression": "blended",
+      "alleles": [
+        { "id": "coat_pond", "label": "Pond green", "dominance": 10, "weight": 24, "value": "#5f9070" },
+        { "id": "coat_teal", "label": "Teal", "dominance": 10, "weight": 20, "value": "#3f8189" },
+        { "id": "coat_silt", "label": "Silt", "dominance": 10, "weight": 18, "value": "#8a8560" },
+        { "id": "coat_lily", "label": "Lily", "dominance": 10, "weight": 14, "value": "#a8cbb4" },
+        { "id": "coat_deep", "label": "Deep blue", "dominance": 10, "weight": 12, "value": "#3c5f8a" },
+        { "id": "coat_blush", "label": "Blush", "dominance": 10, "weight": 12, "value": "#c98a92" }
+      ]
+    },
+    {
+      "id": "coatSecondary",
+      "label": "Belly colour",
+      "expression": "blended",
+      "alleles": [
+        { "id": "under_pearl", "label": "Pearl", "dominance": 10, "weight": 32, "value": "#eef2e4" },
+        { "id": "under_sand", "label": "Sand", "dominance": 10, "weight": 26, "value": "#e2d6ac" },
+        { "id": "under_mint", "label": "Mint", "dominance": 10, "weight": 22, "value": "#c4e0cd" },
+        { "id": "under_dusk", "label": "Dusk", "dominance": 10, "weight": 20, "value": "#a9b2c4" }
+      ]
+    },
+    {
+      "id": "pattern",
+      "label": "Skin pattern",
+      "expression": "dominant",
+      "alleles": [
+        { "id": "pattern_moonpool", "label": "Moonpool sheen", "dominance": 60, "weight": 0, "value": "moonpool", "mutation": true, "statMods": { "instinct": 3, "heart": 2 } },
+        { "id": "pattern_marbled", "label": "Marbled", "dominance": 50, "weight": 12, "value": "marbled", "statMods": { "focus": 2 } },
+        { "id": "pattern_bands", "label": "Banded", "dominance": 40, "weight": 18, "value": "bands" },
+        { "id": "pattern_spots", "label": "Spotted", "dominance": 30, "weight": 24, "value": "spots" },
+        { "id": "pattern_speckle", "label": "Speckled", "dominance": 20, "weight": 20, "value": "speckle" },
+        { "id": "pattern_none", "label": "Plain", "dominance": 10, "weight": 32, "value": "none" }
+      ]
+    },
+    {
+      "id": "surface",
+      "label": "Skin surface",
+      "expression": "environmental",
+      "alleles": [
+        { "id": "surface_plain", "label": "Matte", "dominance": 10, "weight": 68, "value": "plain" },
+        { "id": "surface_glossy", "label": "Water-slick", "dominance": 10, "weight": 32, "value": "glossy", "requiresHabitat": "wetlands", "statMods": { "agility": 2, "instinct": 1 } }
+      ]
+    },
+    {
+      "id": "accent",
+      "label": "Elemental accent",
+      "expression": "co-expressed",
+      "alleles": [
+        { "id": "accent_none", "label": "None", "dominance": 10, "weight": 55, "value": "none" },
+        { "id": "accent_tide", "label": "Tide", "dominance": 10, "weight": 27, "value": "tide", "statMods": { "agility": 3, "instinct": 1 } },
+        { "id": "accent_bloom", "label": "Bloom", "dominance": 10, "weight": 18, "value": "bloom", "statMods": { "heart": 3, "instinct": 1 } },
+        { "id": "accent_lumen", "label": "Lumen", "dominance": 10, "weight": 0, "value": "lumen", "mutation": true, "statMods": { "instinct": 4, "focus": 2 } }
+      ]
+    }
+  ]
+}

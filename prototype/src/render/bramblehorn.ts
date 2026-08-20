@@ -1,52 +1,19 @@
 /**
- * Draws a Bramblehorn from its phenotype.
+ * Draws a Bramblehorn — a horned grazer — from its phenotype.
  *
- * This is a stand-in for the real pipeline, not a preview of the final art. It
- * is built the way §30.3 describes the 3D pipeline — one shared body, swappable
- * species parts, pattern masks over a palette — so that what the prototype
- * proves about inheritance carries over when these become actual models.
+ * A stand-in for the real pipeline, not a preview of the final art. It is built
+ * the way §30.3 describes the 3D pipeline — one shared body, swappable species
+ * parts, pattern masks over a palette — so that what the prototype proves about
+ * inheritance carries over when these become actual models.
  *
  * Rendering is a pure function of the phenotype. No randomness: two monsters
  * with the same genotype must be indistinguishable, or family resemblance stops
  * meaning anything (§3.3).
  */
 
-import type { Phenotype } from '../../sim/src/types.js';
-
-// ---------------------------------------------------------------------------
-// Colour helpers
-// ---------------------------------------------------------------------------
-
-function clampByte(value: number): number {
-  return Math.max(0, Math.min(255, Math.round(value)));
-}
-
-function parseHex(hex: string): [number, number, number] {
-  const match = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
-  if (!match) return [140, 140, 140];
-  const value = Number.parseInt(match[1]!, 16);
-  return [(value >> 16) & 0xff, (value >> 8) & 0xff, value & 0xff];
-}
-
-function toHex(rgb: [number, number, number]): string {
-  return `#${rgb.map((channel) => clampByte(channel).toString(16).padStart(2, '0')).join('')}`;
-}
-
-/** Positive amount lightens, negative darkens. */
-function shade(hex: string, amount: number): string {
-  const [r, g, b] = parseHex(hex);
-  const target = amount > 0 ? 255 : 0;
-  const ratio = Math.abs(amount);
-  return toHex([
-    r + (target - r) * ratio,
-    g + (target - g) * ratio,
-    b + (target - b) * ratio,
-  ]);
-}
-
-// ---------------------------------------------------------------------------
-// Part geometry
-// ---------------------------------------------------------------------------
+import type { Phenotype } from '../../../sim/src/types.js';
+import { hashString, pick, shade } from './shared.js';
+import type { RenderOptions } from './shared.js';
 
 interface BuildSpec {
   bodyRx: number;
@@ -67,27 +34,29 @@ interface HeadSpec {
   ry: number;
   muzzleRx: number;
   muzzleRy: number;
+  /** Muzzle offset as a fraction of head radius — how far the snout jugs out. */
+  muzzleDx: number;
+  muzzleDy: number;
+  /** Broad heads get a squared jaw, which is what actually separates them. */
+  jaw: boolean;
 }
 
+/**
+ * Head variants have to differ in structure, not scale. Four ellipses at
+ * slightly different radii are indistinguishable on a card, so each variant
+ * changes where the muzzle sits and how far it projects.
+ */
 const HEADS: Record<string, HeadSpec> = {
-  round: { rx: 27, ry: 25, muzzleRx: 15, muzzleRy: 12 },
-  long: { rx: 29, ry: 22, muzzleRx: 20, muzzleRy: 12 },
-  broad: { rx: 31, ry: 27, muzzleRx: 18, muzzleRy: 14 },
-  fine: { rx: 24, ry: 21, muzzleRx: 13, muzzleRy: 10 },
+  round: { rx: 27, ry: 26, muzzleRx: 14, muzzleRy: 12, muzzleDx: 0.45, muzzleDy: 0.46, jaw: false },
+  long: { rx: 25, ry: 20, muzzleRx: 23, muzzleRy: 11, muzzleDx: 0.95, muzzleDy: 0.5, jaw: false },
+  broad: { rx: 32, ry: 28, muzzleRx: 20, muzzleRy: 17, muzzleDx: 0.34, muzzleDy: 0.48, jaw: true },
+  fine: { rx: 21, ry: 22, muzzleRx: 11, muzzleRy: 8, muzzleDx: 0.66, muzzleDy: 0.58, jaw: false },
 };
 
 const HEAD_X = 62;
 const HEAD_Y = 74;
 const BODY_X = 122;
 const BODY_Y = 118;
-
-function pick<T>(table: Record<string, T>, key: string, fallback: string): T {
-  return table[key] ?? table[fallback]!;
-}
-
-// ---------------------------------------------------------------------------
-// Parts
-// ---------------------------------------------------------------------------
 
 function drawHorns(kind: string, outline: string): string {
   const bone = '#efe4cf';
@@ -147,29 +116,44 @@ function drawHorns(kind: string, outline: string): string {
   }
 }
 
+/**
+ * Ears sit low and to the sides. Drawn up near the crown they compete with the
+ * horns and every variant collapses into "spike"; out at cheek height each
+ * silhouette stays its own shape.
+ */
 function drawEars(kind: string, coat: string, inner: string, outline: string): string {
   const stroke = `stroke="${outline}" stroke-width="2.5" stroke-linejoin="round"`;
   switch (kind) {
     case 'leaf':
+      // Long, pointed, angled outward and slightly down.
       return `
-        <path d="M40 62 C 22 54, 14 62, 20 74 C 28 80, 38 74, 40 62 Z" fill="${coat}" ${stroke}/>
-        <path d="M86 60 C 104 50, 114 58, 108 70 C 100 78, 88 72, 86 60 Z" fill="${coat}" ${stroke}/>`;
+        <path d="M40 72 C 20 64, 6 68, 2 80 C 12 88, 30 86, 42 78 Z" fill="${coat}" ${stroke}/>
+        <path d="M86 70 C 106 62, 120 66, 124 78 C 114 86, 96 84, 84 76 Z" fill="${coat}" ${stroke}/>
+        <path d="M36 74 C 24 71, 14 73, 10 79" fill="none" stroke="${inner}" stroke-width="3"/>
+        <path d="M90 72 C 102 69, 112 71, 116 77" fill="none" stroke="${inner}" stroke-width="3"/>`;
     case 'round':
+      // Big, obviously circular.
       return `
-        <circle cx="34" cy="62" r="12" fill="${coat}" ${stroke}/>
-        <circle cx="92" cy="60" r="12" fill="${coat}" ${stroke}/>
-        <circle cx="34" cy="62" r="6" fill="${inner}"/>
-        <circle cx="92" cy="60" r="6" fill="${inner}"/>`;
+        <circle cx="28" cy="74" r="15" fill="${coat}" ${stroke}/>
+        <circle cx="98" cy="72" r="15" fill="${coat}" ${stroke}/>
+        <circle cx="27" cy="74" r="8" fill="${inner}"/>
+        <circle cx="99" cy="72" r="8" fill="${inner}"/>`;
     case 'tufted':
+      // Short cup with a prominent spray of hair — the tuft is the read.
       return `
-        <path d="M40 62 L 22 40 L 36 46 L 42 60 Z" fill="${coat}" ${stroke}/>
-        <path d="M86 60 L 104 38 L 106 52 L 90 60 Z" fill="${coat}" ${stroke}/>
-        <path d="M26 44 L 20 34 L 32 40 Z" fill="${inner}"/>
-        <path d="M102 42 L 108 32 L 110 44 Z" fill="${inner}"/>`;
+        <path d="M40 72 C 26 70, 18 74, 16 82 C 26 86, 38 82, 42 76 Z" fill="${coat}" ${stroke}/>
+        <path d="M86 70 C 100 68, 108 72, 110 80 C 100 84, 88 80, 84 74 Z" fill="${coat}" ${stroke}/>
+        <path d="M24 72 L 14 58 M20 74 L 6 66 M28 70 L 22 56" stroke="${outline}"
+              stroke-width="3.5" stroke-linecap="round" fill="none"/>
+        <path d="M102 70 L 112 56 M106 72 L 120 64 M98 68 L 104 54" stroke="${outline}"
+              stroke-width="3.5" stroke-linecap="round" fill="none"/>`;
     case 'drooped':
+      // Long lobes hanging well below the jaw.
       return `
-        <ellipse cx="32" cy="76" rx="10" ry="17" fill="${coat}" ${stroke} transform="rotate(-18 32 76)"/>
-        <ellipse cx="94" cy="74" rx="10" ry="17" fill="${coat}" ${stroke} transform="rotate(18 94 74)"/>`;
+        <path d="M38 70 C 22 72, 12 84, 14 102 C 26 106, 38 94, 42 78 Z" fill="${coat}" ${stroke}/>
+        <path d="M88 68 C 104 70, 114 82, 112 100 C 100 104, 88 92, 84 76 Z" fill="${coat}" ${stroke}/>
+        <path d="M32 78 C 24 82, 20 90, 21 98" fill="none" stroke="${inner}" stroke-width="3.5"/>
+        <path d="M94 76 C 102 80, 106 88, 105 96" fill="none" stroke="${inner}" stroke-width="3.5"/>`;
     default:
       return '';
   }
@@ -294,12 +278,6 @@ function drawMoss(surface: string): string {
 // Assembly
 // ---------------------------------------------------------------------------
 
-export interface RenderOptions {
-  /** Rendered pixel size. The viewBox is fixed, so this only scales. */
-  size?: number;
-  /** Extra classes on the root <svg>. */
-  className?: string;
-}
 
 /**
  * Build the full SVG for one monster. Layer order runs back to front so parts
@@ -379,10 +357,19 @@ export function renderBramblehorn(phenotype: Phenotype, options: RenderOptions =
     <ellipse cx="${HEAD_X}" cy="${HEAD_Y}" rx="${head.rx}" ry="${head.ry}"
              fill="${coat}" stroke="${outline}" stroke-width="3"/>
     ${drawFacialStripe(pattern)}
-    <ellipse cx="${HEAD_X - head.rx * 0.42}" cy="${HEAD_Y + head.ry * 0.46}"
+    ${
+      head.jaw
+        ? `<rect x="${HEAD_X - head.rx * 0.95}" y="${HEAD_Y + head.ry * 0.1}"
+                 width="${head.rx * 1.3}" height="${head.ry * 0.85}" rx="9"
+                 fill="${coat}" stroke="${outline}" stroke-width="3"/>`
+        : ''
+    }
+    <ellipse cx="${HEAD_X - head.rx * head.muzzleDx}" cy="${HEAD_Y + head.ry * head.muzzleDy}"
              rx="${head.muzzleRx}" ry="${head.muzzleRy}" fill="${under}"
              stroke="${outline}" stroke-width="2.5"/>
-    <ellipse cx="${HEAD_X - head.rx * 0.62}" cy="${HEAD_Y + head.ry * 0.34}" rx="4" ry="3" fill="${outline}"/>
+    <ellipse cx="${HEAD_X - head.rx * head.muzzleDx - head.muzzleRx * 0.55}"
+             cy="${HEAD_Y + head.ry * head.muzzleDy - head.muzzleRy * 0.25}"
+             rx="4" ry="3" fill="${outline}"/>
 
     <!-- Large, simple eyes: the main mood read at phone scale (§30.2). -->
     <circle cx="${HEAD_X - 9}" cy="${HEAD_Y - 4}" r="6.5" fill="#2c2620"/>
@@ -393,13 +380,4 @@ export function renderBramblehorn(phenotype: Phenotype, options: RenderOptions =
     ${drawAccents(valueOf('accent', 'none'))}
   </g>
 </svg>`.trim();
-}
-
-function hashString(input: string): number {
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < input.length; i++) {
-    hash ^= input.charCodeAt(i);
-    hash = Math.imul(hash, 0x01000193);
-  }
-  return hash | 0;
 }

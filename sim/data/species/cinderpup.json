@@ -1,0 +1,125 @@
+{
+  "id": "cinderpup",
+  "name": "Cinderpup",
+  "creatureType": "Ember canine",
+  "baseStats": { "might": 30, "agility": 36, "focus": 30, "heart": 26, "instinct": 28 },
+  "statVariance": 3,
+  "affinities": ["ember", "gale"],
+  "mutationRate": 0.02,
+
+  "_note": "Cinderpup uses its own trait slots — mane and brush rather than horns and tail-tuft — which is the point: nothing about the genetics engine is specific to Bramblehorn. Recessives kept deliberately low-ranked for carrier play: build_whippet, ear_folded, mane_sleek, pattern_none.",
+
+  "slots": [
+    {
+      "id": "bodyBuild",
+      "label": "Body build",
+      "expression": "dominant",
+      "alleles": [
+        { "id": "build_sturdy", "label": "Sturdy", "dominance": 30, "weight": 25, "value": "sturdy", "statMods": { "might": 7, "agility": -5 } },
+        { "id": "build_standard", "label": "Standard", "dominance": 20, "weight": 45, "value": "standard" },
+        { "id": "build_whippet", "label": "Whippet", "dominance": 10, "weight": 30, "value": "whippet", "statMods": { "agility": 8, "might": -5 } }
+      ]
+    },
+    {
+      "id": "headShape",
+      "label": "Muzzle",
+      "expression": "dominant",
+      "alleles": [
+        { "id": "head_blunt", "label": "Blunt", "dominance": 40, "weight": 22, "value": "blunt", "statMods": { "might": 3, "agility": -1 } },
+        { "id": "head_fox", "label": "Fox", "dominance": 30, "weight": 33, "value": "fox", "statMods": { "instinct": 3 } },
+        { "id": "head_round", "label": "Round", "dominance": 20, "weight": 30, "value": "round", "statMods": { "heart": 2 } },
+        { "id": "head_narrow", "label": "Narrow", "dominance": 10, "weight": 15, "value": "narrow", "statMods": { "focus": 3, "might": -2 } }
+      ]
+    },
+    {
+      "id": "ears",
+      "label": "Ears",
+      "expression": "dominant",
+      "alleles": [
+        { "id": "ear_tall", "label": "Tall", "dominance": 40, "weight": 25, "value": "tall", "statMods": { "instinct": 3 } },
+        { "id": "ear_pricked", "label": "Pricked", "dominance": 30, "weight": 30, "value": "pricked", "statMods": { "focus": 2 } },
+        { "id": "ear_wide", "label": "Wide-set", "dominance": 20, "weight": 25, "value": "wide", "statMods": { "instinct": 2 } },
+        { "id": "ear_folded", "label": "Folded", "dominance": 10, "weight": 20, "value": "folded", "statMods": { "heart": 3, "focus": -1 } }
+      ]
+    },
+    {
+      "id": "mane",
+      "label": "Mane",
+      "expression": "dominant",
+      "alleles": [
+        { "id": "mane_full", "label": "Full", "dominance": 40, "weight": 22, "value": "full", "statMods": { "might": 4, "agility": -2 } },
+        { "id": "mane_embercrown", "label": "Ember crown", "dominance": 35, "weight": 0, "value": "embercrown", "mutation": true, "statMods": { "focus": 5, "instinct": 3, "agility": -2 } },
+        { "id": "mane_ruff", "label": "Ruff", "dominance": 30, "weight": 30, "value": "ruff", "statMods": { "heart": 2 } },
+        { "id": "mane_spiked", "label": "Spiked", "dominance": 20, "weight": 26, "value": "spiked", "statMods": { "might": 2, "focus": 1 } },
+        { "id": "mane_sleek", "label": "Sleek", "dominance": 10, "weight": 22, "value": "sleek", "statMods": { "agility": 5, "might": -2 } }
+      ]
+    },
+    {
+      "id": "brush",
+      "label": "Tail",
+      "expression": "dominant",
+      "alleles": [
+        { "id": "brush_plume", "label": "Plume", "dominance": 30, "weight": 38, "value": "plume", "statMods": { "heart": 1 } },
+        { "id": "brush_curl", "label": "Curled", "dominance": 20, "weight": 34, "value": "curl", "statMods": { "agility": 2 } },
+        { "id": "brush_whip", "label": "Whip", "dominance": 10, "weight": 28, "value": "whip", "statMods": { "agility": 3, "might": -1 } }
+      ]
+    },
+    {
+      "id": "coatPrimary",
+      "label": "Coat colour",
+      "expression": "blended",
+      "alleles": [
+        { "id": "coat_ember", "label": "Ember", "dominance": 10, "weight": 24, "value": "#c9542a" },
+        { "id": "coat_rust", "label": "Rust", "dominance": 10, "weight": 20, "value": "#9c4a2c" },
+        { "id": "coat_ash", "label": "Ash", "dominance": 10, "weight": 20, "value": "#7c7168" },
+        { "id": "coat_soot", "label": "Soot", "dominance": 10, "weight": 14, "value": "#4a4340" },
+        { "id": "coat_sand", "label": "Sand", "dominance": 10, "weight": 12, "value": "#d9a86a" },
+        { "id": "coat_flame", "label": "Flame", "dominance": 10, "weight": 10, "value": "#e2822f" }
+      ]
+    },
+    {
+      "id": "coatSecondary",
+      "label": "Underside colour",
+      "expression": "blended",
+      "alleles": [
+        { "id": "under_pale", "label": "Pale", "dominance": 10, "weight": 32, "value": "#f2e2c8" },
+        { "id": "under_smoke", "label": "Smoke", "dominance": 10, "weight": 26, "value": "#cfc4bb" },
+        { "id": "under_tan", "label": "Tan", "dominance": 10, "weight": 24, "value": "#dfb887" },
+        { "id": "under_char", "label": "Char", "dominance": 10, "weight": 18, "value": "#8d817b" }
+      ]
+    },
+    {
+      "id": "pattern",
+      "label": "Coat pattern",
+      "expression": "dominant",
+      "alleles": [
+        { "id": "pattern_cinderveil", "label": "Cinder veil", "dominance": 60, "weight": 0, "value": "cinderveil", "mutation": true, "statMods": { "instinct": 3, "focus": 2 } },
+        { "id": "pattern_mask", "label": "Masked", "dominance": 50, "weight": 12, "value": "mask", "statMods": { "focus": 2 } },
+        { "id": "pattern_dorsal", "label": "Dorsal stripe", "dominance": 40, "weight": 18, "value": "dorsal" },
+        { "id": "pattern_socks", "label": "Socks", "dominance": 30, "weight": 22, "value": "socks" },
+        { "id": "pattern_flecks", "label": "Ember flecks", "dominance": 20, "weight": 20, "value": "flecks", "statMods": { "instinct": 1 } },
+        { "id": "pattern_none", "label": "Plain", "dominance": 10, "weight": 34, "value": "none" }
+      ]
+    },
+    {
+      "id": "surface",
+      "label": "Coat surface",
+      "expression": "environmental",
+      "alleles": [
+        { "id": "surface_plain", "label": "Plain", "dominance": 10, "weight": 70, "value": "plain" },
+        { "id": "surface_scorched", "label": "Scorch-marked", "dominance": 10, "weight": 30, "value": "scorched", "requiresHabitat": "emberyard", "statMods": { "might": 2, "focus": 1 } }
+      ]
+    },
+    {
+      "id": "accent",
+      "label": "Elemental accent",
+      "expression": "co-expressed",
+      "alleles": [
+        { "id": "accent_none", "label": "None", "dominance": 10, "weight": 55, "value": "none" },
+        { "id": "accent_ember", "label": "Ember", "dominance": 10, "weight": 28, "value": "ember", "statMods": { "might": 3, "focus": 1 } },
+        { "id": "accent_gale", "label": "Gale", "dominance": 10, "weight": 17, "value": "gale", "statMods": { "agility": 4, "might": -1 } },
+        { "id": "accent_ashglow", "label": "Ash glow", "dominance": 10, "weight": 0, "value": "ashglow", "mutation": true, "statMods": { "instinct": 4, "focus": 2 } }
+      ]
+    }
+  ]
+}

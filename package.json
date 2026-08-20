@@ -2,14 +2,14 @@
   "name": "ranchborn",
   "version": "0.1.0",
   "private": true,
-  "description": "Ranchborn — genetics simulation core and browser breeding prototype",
+  "description": "Ranchborn \u2014 genetics simulation core and browser breeding prototype",
   "type": "module",
   "scripts": {
     "build": "tsc",
     "test": "tsc && node --test \"dist/sim/test/**/*.test.js\"",
     "serve": "npm run build && node scripts/serve.js",
     "bundle": "node scripts/bundle.js",
-    "variant-sheet": "npm run build && node scripts/variant-sheet.js"
+    "variant-sheet": "npm run build && node scripts/variant-sheet.js bramblehorn && node scripts/variant-sheet.js cinderpup && node scripts/variant-sheet.js puddlekin"
   },
   "devDependencies": {
     "@types/node": "^26.2.0",

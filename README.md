@@ -20,7 +20,7 @@ central hook before committing to an engine.
 
 ```bash
 npm install
-npm test          # 37 tests covering inheritance, expression, and pairing rules
+npm test          # 68 tests covering inheritance, expression, pairing and breeds
 npm run serve     # then open http://localhost:8123/
 ```
 
@@ -40,9 +40,6 @@ the code, styles, and species data inlined. Open it directly in a browser. No
 server, no network, nothing to install on the machine you open it on, so it can
 be emailed to a playtester or opened on a phone.
 
-`npm run variant-sheet` renders every trait variant to `dist/variant-sheet.html`
-for art review.
-
 ## Documentation
 
 | Document | Contents |
@@ -54,7 +51,7 @@ for art review.
 
 | Path | Contents |
 |---|---|
-| `sim/` | Engine-agnostic genetics and breeding core, plus species data as editable JSON (§37.1). No DOM, no dependencies. |
+| `sim/` | Engine-agnostic genetics, breeding and breed-registry core, plus three species as editable JSON (§37.1). No DOM, no dependencies. |
 | `prototype/` | Browser prototype: SVG monsters rendered from genotype, a pairing forecast, and a family tree. |
 | `scripts/` | Static file server, the standalone bundler, and the variant contact sheet. |
 
@@ -67,13 +64,17 @@ inheritance carries over.
 
 ### What is and is not modelled
 
-Built: trait slots and alleles, the four expression modes, mutation, stat
-potential and the §17.5 tradeoffs, personality axes and quirks, pairing rules,
-relatedness, the offspring forecast, family trees, ranch days, life stages.
+Built: three species (Bramblehorn, Cinderpup, Puddlekin) each with their own
+trait vocabulary, the four expression modes, mutation, stat potential and the
+§17.5 tradeoffs, personality axes and quirks, pairing rules, relatedness, the
+offspring forecast, family trees, ranch days, life stages, and breed
+registration with hallmark standards and recognition ranks (§18).
 
-Not built: ranch jobs, needs decay, competitions, the economy, breed
-registration, automation, story. The prototype answers one question — whether
-inherited traits read on screen — and stops there.
+Not built: ranch jobs, needs decay, competitions, the economy, automation,
+story, expeditions.
+
+`npm run variant-sheet` renders every allele of every species to
+`dist/variant-sheet-<species>.html` for art review.
 
 ### Where to start
 
