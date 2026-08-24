@@ -15,7 +15,7 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 
 const { parseSpecies } = await import(`${root}dist/sim/src/species.js`);
 const { expressGenotype } = await import(`${root}dist/sim/src/genetics.js`);
-const { renderBramblehorn } = await import(`${root}dist/prototype/src/render.js`);
+const { renderSpecies } = await import(`${root}dist/prototype/src/render/index.js`);
 
 const speciesId = process.argv[2] ?? 'bramblehorn';
 const species = parseSpecies(
@@ -25,8 +25,8 @@ const species = parseSpecies(
 
 /**
  * Baseline: the most common ordinary allele in each slot, so every card is a
- * typical Bramblehorn varying in exactly one place. Picking the *first* allele
- * instead would put a rare hallmark (the gold facial stripe) on every card.
+ * typical member of the species varying in exactly one place. Picking the
+ * *first* allele instead would put a rare hallmark on every card.
  */
 const base = {};
 for (const slot of species.slots) {
@@ -46,7 +46,7 @@ const sections = species.slots
         const phenotype = expressGenotype(species, genotype, habitat ? { habitat } : {});
         return `
           <figure>
-            ${renderBramblehorn(phenotype, { size: 190 })}
+            ${renderSpecies(species.id, phenotype, { size: 190 })}
             <figcaption>
               <strong>${allele.label}</strong>${allele.mutation ? ' <em>mutation</em>' : ''}
               <span>${allele.id}${habitat ? ` · in ${habitat}` : ''}</span>
@@ -88,6 +88,6 @@ const html = `<!doctype html>
 </body></html>`;
 
 await mkdir(`${root}dist`, { recursive: true });
-const out = `${root}dist/variant-sheet.html`;
+const out = `${root}dist/variant-sheet-${speciesId}.html`;
 await writeFile(out, html, 'utf8');
 console.log(`wrote ${out}`);

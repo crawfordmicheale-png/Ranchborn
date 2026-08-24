@@ -7,7 +7,6 @@
  * its parents and grandparents in it (§3.3, §43).
  */
 
-import { parseSpecies } from '../../sim/src/species.js';
 import { expressGenotype } from '../../sim/src/genetics.js';
 import {
   advanceLifeStage,
@@ -17,15 +16,25 @@ import {
 } from '../../sim/src/monster.js';
 import { canPair, forecastPairing } from '../../sim/src/breeding.js';
 import { grandparentsOf, parentsOf } from '../../sim/src/lineage.js';
+import {
+  applyBreedToMembers,
+  evaluateBreed,
+  proposeStandard,
+  qualifyingMembers,
+  registerBreed,
+} from '../../sim/src/breed.js';
+import type { RegisteredBreed } from '../../sim/src/breed.js';
 import type { Monster, Phenotype, SpeciesDef } from '../../sim/src/types.js';
-import { renderBramblehorn } from './render.js';
+import { renderSpecies } from './render/index.js';
+import { loadAllSpecies, SPECIES_IDS } from './species-data.js';
 
 // ---------------------------------------------------------------------------
 // State
 // ---------------------------------------------------------------------------
 
 interface State {
-  species: SpeciesDef;
+  /** Every loaded species, keyed by id. Breeding never crosses species (§16.1). */
+  speciesById: Map<string, SpeciesDef>;
   monsters: Map<string, Monster>;
   order: string[];
   selectedA: string | null;
@@ -36,17 +45,35 @@ interface State {
   showGuide: boolean;
   ranchDay: number;
   log: string[];
+  /** Breeds the player has registered (§18). */
+  breeds: RegisteredBreed[];
+  /** Draft name in the registry form. */
+  breedName: string;
 }
 
 let state: State;
 let nextId = 0;
 
-const HABITATS = ['homestead', 'orchard', 'wetlands', 'quarry'] as const;
+const HABITATS = ['homestead', 'orchard', 'wetlands', 'quarry', 'emberyard'] as const;
+
+/** Crest glyphs, handed out in order as breeds are registered (§18.2). */
+const CRESTS = ['✿', '❖', '✦', '❂', '✤', '⬟'];
 
 const lookup = (id: string): Monster | undefined => state.monsters.get(id);
 
+function breedOf(monster: Monster): RegisteredBreed | undefined {
+  if (!monster.registeredBreedId) return undefined;
+  return state.breeds.find((breed) => breed.id === monster.registeredBreedId);
+}
+
+function speciesOf(monster: Monster): SpeciesDef {
+  const species = state.speciesById.get(monster.speciesId);
+  if (!species) throw new Error(`no species data loaded for "${monster.speciesId}"`);
+  return species;
+}
+
 function phenotypeOf(monster: Monster): Phenotype {
-  return expressGenotype(state.species, monster.genotype, { habitat: state.habitat });
+  return expressGenotype(speciesOf(monster), monster.genotype, { habitat: state.habitat });
 }
 
 function addMonster(monster: Monster): Monster {
@@ -70,11 +97,30 @@ function socialise(): void {
   }
 }
 
-function newFounder(name?: string): Monster {
+/**
+ * Names come from a small pool, so collisions arrive quickly on a busy ranch.
+ * Players are supposed to remember monsters by name (§43); two Bramdowns break
+ * that, so later duplicates get a numeral the way real herd books do.
+ */
+function uniqueName(seed: string): string {
+  const base = generateName(seed);
+  const taken = new Set([...state.monsters.values()].map((monster) => monster.name));
+  if (!taken.has(base)) return base;
+  const suffixes = ['II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX'];
+  for (const suffix of suffixes) {
+    const candidate = `${base} ${suffix}`;
+    if (!taken.has(candidate)) return candidate;
+  }
+  return `${base} ${taken.size}`;
+}
+
+function newFounder(speciesId: string, name?: string): Monster {
+  const species = state.speciesById.get(speciesId);
+  if (!species) throw new Error(`cannot rescue an unknown species "${speciesId}"`);
   const id = `m${nextId++}`;
   const seed = `${id}-${Math.floor(Math.random() * 1e9)}`;
-  const options = { id, seed, lifeStage: 'adult' as const, ...(name ? { name } : {}) };
-  const monster = addMonster(createFounder(state.species, options));
+  const options = { id, seed, lifeStage: 'adult' as const, name: name ?? uniqueName(seed) };
+  const monster = addMonster(createFounder(species, options));
   socialise();
   return monster;
 }
@@ -103,22 +149,30 @@ function percent(value: number): string {
 }
 
 /** Human-readable names for a slot's alleles — never show raw ids in the UI. */
-function alleleLabels(slotId: string, alleleIds: string[]): string {
-  const slot = state.species.slots.find((candidate) => candidate.id === slotId);
+function alleleLabels(species: SpeciesDef, slotId: string, alleleIds: string[]): string {
+  const slot = species.slots.find((candidate) => candidate.id === slotId);
   return alleleIds
     .map((id) => slot?.alleles.find((allele) => allele.id === id)?.label ?? id)
     .join(' + ');
 }
 
-/** The traits worth naming on a card — the ones you can actually see. */
-function traitSummary(phenotype: Phenotype): string[] {
-  const wanted = ['horns', 'bodyBuild', 'pattern', 'ears', 'tail'];
-  return wanted
-    .map((slotId) => phenotype[slotId])
+/**
+ * The traits worth naming on a card.
+ *
+ * Derived from the species' own slot list rather than a hardcoded set, because
+ * the three species share no slot names — a Bramblehorn has horns, a Cinderpup
+ * a mane, a Puddlekin frills and fins. Blended slots are skipped: "Moss + Bark"
+ * is a colour, and the swatch on the portrait already says it better.
+ */
+function traitSummary(species: SpeciesDef, phenotype: Phenotype): string[] {
+  return species.slots
+    .filter((slot) => slot.expression !== 'blended')
+    .slice(0, 5)
+    .map((slot) => phenotype[slot.id])
     .filter((trait): trait is NonNullable<typeof trait> => trait !== undefined)
     .map(
       (trait) =>
-        `${alleleLabels(trait.slotId, trait.alleleIds)}${trait.isMutation ? ' ✦' : ''}`,
+        `${alleleLabels(species, trait.slotId, trait.alleleIds)}${trait.isMutation ? ' ✦' : ''}`,
     );
 }
 
@@ -127,6 +181,7 @@ function traitSummary(phenotype: Phenotype): string[] {
 // ---------------------------------------------------------------------------
 
 function monsterCard(monster: Monster, options: { compact?: boolean; role?: string } = {}): string {
+  const species = speciesOf(monster);
   const phenotype = phenotypeOf(monster);
   const isA = state.selectedA === monster.id;
   const isB = state.selectedB === monster.id;
@@ -140,15 +195,25 @@ function monsterCard(monster: Monster, options: { compact?: boolean; role?: stri
   return `
     <article class="card${selectedClass}${options.compact ? ' compact' : ''}"
              data-action="select" data-id="${monster.id}" tabindex="0">
-      ${roleBadge}${parentBadge}
-      <div class="portrait">${renderBramblehorn(phenotype, { size: options.compact ? 150 : 210 })}</div>
+      ${roleBadge}${parentBadge}${
+        breedOf(monster)
+          ? `<span class="crest" title="${escapeHtml(breedOf(monster)!.name)}">${escapeHtml(
+              breedOf(monster)!.crest,
+            )}</span>`
+          : ''
+      }
+      <div class="portrait">${renderSpecies(monster.speciesId, phenotype, {
+        size: options.compact ? 150 : 210,
+      })}</div>
       <h3>${escapeHtml(monster.name)}</h3>
-      <p class="stage">${STAGE_LABEL[monster.lifeStage]}${
-        monster.parentIds ? '' : ' · Founder'
-      }${mutations.length > 0 ? ' · <span class="mutation">Mutation</span>' : ''}</p>
+      <p class="stage"><span class="species-tag">${escapeHtml(species.name)}</span> ${
+        STAGE_LABEL[monster.lifeStage]
+      }${monster.parentIds ? '' : ' · Founder'}${
+        mutations.length > 0 ? ' · <span class="mutation">Mutation</span>' : ''
+      }</p>
       ${options.compact ? '' : `
         <ul class="traits">
-          ${traitSummary(phenotype).map((trait) => `<li>${escapeHtml(trait)}</li>`).join('')}
+          ${traitSummary(species, phenotype).map((trait) => `<li>${escapeHtml(trait)}</li>`).join('')}
         </ul>
         <p class="tags">${monster.personalityTags.map(escapeHtml).join(' · ')}</p>
       `}
@@ -167,7 +232,7 @@ function forecastView(a: Monster, b: Monster): string {
       </div>`;
   }
 
-  const forecast = forecastPairing(state.species, a, b, {
+  const forecast = forecastPairing(speciesOf(a), a, b, {
     context: { habitat: state.habitat },
   });
 
@@ -236,8 +301,9 @@ function lineageView(monster: Monster): string {
   const grandparentPhenotypes = grandparents.map(phenotypeOf);
 
   // Call out any visible trait that skipped the parents — the payoff moment.
+  const species = speciesOf(monster);
   const skipped: string[] = [];
-  for (const slot of state.species.slots) {
+  for (const slot of species.slots) {
     const mine = phenotype[slot.id];
     if (!mine) continue;
     const inParents = parentPhenotypes.some((parent) => parent[slot.id]?.value === mine.value);
@@ -245,7 +311,7 @@ function lineageView(monster: Monster): string {
       (grandparent) => grandparent[slot.id]?.value === mine.value,
     );
     if (!inParents && inGrandparents) {
-      skipped.push(`${slot.label} — ${alleleLabels(slot.id, mine.alleleIds)}`);
+      skipped.push(`${slot.label} — ${alleleLabels(species, slot.id, mine.alleleIds)}`);
     }
   }
 
@@ -282,8 +348,9 @@ function lineageView(monster: Monster): string {
 }
 
 function advancedView(monster: Monster): string {
+  const species = speciesOf(monster);
   const phenotype = phenotypeOf(monster);
-  const rows = state.species.slots
+  const rows = species.slots
     .map((slot) => {
       const pair = monster.genotype[slot.id]!;
       const trait = phenotype[slot.id]!;
@@ -325,6 +392,106 @@ function advancedView(monster: Monster): string {
     </div>`;
 }
 
+/**
+ * The registry panel (§18).
+ *
+ * Reads a candidate standard off the inspected monster, finds everyone on the
+ * ranch who meets it, and shows the §18.1 checklist. Presented as progress
+ * rather than a pass/fail, so a player can see what the line still needs.
+ */
+function registryView(exemplar: Monster): string {
+  const species = speciesOf(exemplar);
+  const proposal = proposeStandard(species, exemplar, phenotypeOf);
+  const roster = state.order.map((id) => state.monsters.get(id)!);
+  const members = qualifyingMembers(species.id, proposal.hallmarks, roster, phenotypeOf);
+  const evaluation = evaluateBreed(proposal.hallmarks, members, lookup);
+
+  const existing = breedOf(exemplar);
+  if (existing) {
+    return breedCard(existing, members.length);
+  }
+
+  const checklist = evaluation.requirements
+    .map(
+      (requirement) => `
+        <li class="${requirement.met ? 'met' : 'unmet'}">
+          <span class="tick">${requirement.met ? '✓' : '○'}</span>
+          <span class="req-label">${escapeHtml(requirement.label)}</span>
+          <span class="req-detail">${escapeHtml(requirement.detail)}</span>
+        </li>`,
+    )
+    .join('');
+
+  return `
+    <div class="registry">
+      <p class="hint">A standard read from ${escapeHtml(exemplar.name)}. Any monster on the
+         ranch matching all four hallmarks counts towards the breed.</p>
+
+      <h4>Hallmark traits</h4>
+      <ul class="hallmarks">
+        ${proposal.hallmarks
+          .map(
+            (hallmark) =>
+              `<li><span>${escapeHtml(
+                species.slots.find((slot) => slot.id === hallmark.slotId)?.label ?? hallmark.slotId,
+              )}</span><strong>${escapeHtml(hallmark.label)}</strong></li>`,
+          )
+          .join('')}
+      </ul>
+
+      <h4>Standard</h4>
+      <p class="standard-line">
+        ${escapeHtml(proposal.temperament)} ·
+        ${escapeHtml(proposal.primarySpecialty)} ·
+        ${escapeHtml(proposal.secondarySpecialty)}
+      </p>
+
+      <h4>Requirements (§18.1)</h4>
+      <ul class="requirements">${checklist}</ul>
+
+      <div class="register-form">
+        <input type="text" data-action="breed-name" placeholder="Name this breed"
+               value="${escapeHtml(state.breedName)}" maxlength="40"
+               aria-label="Breed name"${evaluation.eligible ? '' : ' disabled'}/>
+        <button class="primary" data-action="register-breed" data-id="${exemplar.id}"
+                ${evaluation.eligible && state.breedName.trim().length > 0 ? '' : 'disabled'}>
+          ${evaluation.eligible ? 'Register breed' : 'Not yet eligible'}
+        </button>
+      </div>
+    </div>`;
+}
+
+const RANK_LABEL: Record<string, string> = {
+  emerging: 'Emerging',
+  recognized: 'Recognized',
+  heritage: 'Heritage',
+};
+
+function breedCard(breed: RegisteredBreed, memberCount: number): string {
+  return `
+    <div class="breed-card">
+      <div class="breed-head">
+        <span class="breed-crest">${escapeHtml(breed.crest)}</span>
+        <div>
+          <h3>${escapeHtml(breed.name)}</h3>
+          <span class="rank rank-${breed.rank}">${RANK_LABEL[breed.rank]}</span>
+        </div>
+      </div>
+      <ul class="hallmarks">
+        ${breed.hallmarks
+          .map((hallmark) => `<li><strong>${escapeHtml(hallmark.label)}</strong></li>`)
+          .join('')}
+      </ul>
+      <p class="standard-line">
+        ${escapeHtml(breed.temperament)} ·
+        ${escapeHtml(breed.primarySpecialty)} ·
+        ${escapeHtml(breed.secondarySpecialty)}
+      </p>
+      <p class="hint">${memberCount} qualifying ${memberCount === 1 ? 'monster' : 'monsters'} ·
+         registered on ranch day ${breed.registeredOnDay}</p>
+    </div>`;
+}
+
 // ---------------------------------------------------------------------------
 // Render
 // ---------------------------------------------------------------------------
@@ -352,7 +519,14 @@ function render(): void {
         </label>
         <span class="day">Ranch day ${state.ranchDay}</span>
         <button data-action="end-day">End ranch day</button>
-        <button data-action="add-founder">Rescue a founder</button>
+        <span class="rescue">Rescue
+          ${SPECIES_IDS.map(
+            (id) =>
+              `<button data-action="add-founder" data-species="${id}">${escapeHtml(
+                state.speciesById.get(id)?.name ?? id,
+              )}</button>`,
+          ).join('')}
+        </span>
         <button data-action="carrier-demo">Set up carrier lineage</button>
         <label class="toggle">
           <input type="checkbox" data-action="advanced"${state.advanced ? ' checked' : ''}/>
@@ -410,6 +584,15 @@ function render(): void {
         }
 
         ${
+          inspecting
+            ? `<section class="registry-section">
+                 <h2>Breed registry</h2>
+                 ${registryView(inspecting)}
+               </section>`
+            : ''
+        }
+
+        ${
           state.log.length > 0
             ? `<section class="log">
                  <h2>Ranch log</h2>
@@ -453,10 +636,10 @@ function breed(): void {
 
   const id = `m${nextId++}`;
   const seed = `${id}-${Math.floor(Math.random() * 1e9)}`;
-  const child = createOffspring(state.species, a, b, {
+  const child = createOffspring(speciesOf(a), a, b, {
     id,
     seed,
-    name: generateName(seed),
+    name: uniqueName(seed),
     birthDay: state.ranchDay,
     habitat: state.habitat,
   });
@@ -469,6 +652,36 @@ function breed(): void {
     `Day ${state.ranchDay}: ${child.name} hatched — ${a.name} × ${b.name}` +
       (child.mutationHistory.length > 0 ? ' (mutation!)' : ''),
   );
+  render();
+}
+
+function doRegisterBreed(exemplarId: string): void {
+  const exemplar = state.monsters.get(exemplarId);
+  if (!exemplar) return;
+
+  const species = speciesOf(exemplar);
+  const proposal = proposeStandard(species, exemplar, phenotypeOf);
+  const roster = state.order.map((id) => state.monsters.get(id)!);
+  const members = qualifyingMembers(species.id, proposal.hallmarks, roster, phenotypeOf);
+  const evaluation = evaluateBreed(proposal.hallmarks, members, lookup);
+  if (!evaluation.eligible) return;
+
+  const breed = registerBreed(species, proposal, evaluation, {
+    id: `breed-${state.breeds.length + 1}`,
+    name: state.breedName.trim(),
+    crest: CRESTS[state.breeds.length % CRESTS.length]!,
+    ranchDay: state.ranchDay,
+  });
+
+  state.breeds.push(breed);
+  for (const member of applyBreedToMembers(breed, members)) {
+    state.monsters.set(member.id, member);
+  }
+
+  state.log.push(
+    `Day ${state.ranchDay}: registered ${breed.name} — ${members.length} qualifying monsters.`,
+  );
+  state.breedName = '';
   render();
 }
 
@@ -491,8 +704,14 @@ function endRanchDay(): void {
  * and roughly a quarter of the hatchlings show the grandparents' stub horns.
  */
 function carrierDemo(): void {
+  // The demonstration is Bramblehorn-specific: it relies on horn_stub being the
+  // lowest-ranked horn allele. Other species have their own recessives, but
+  // scripting one lineage is enough to show the mechanism.
+  const species = state.speciesById.get('bramblehorn');
+  if (!species) return;
+
   const base: Record<string, readonly [string, string]> = {};
-  for (const slot of state.species.slots) {
+  for (const slot of species.slots) {
     const allele = slot.alleles.find((candidate) => candidate.mutation !== true)!;
     base[slot.id] = [allele.id, allele.id] as const;
   }
@@ -501,7 +720,7 @@ function carrierDemo(): void {
     const stubId = `m${nextId++}`;
     const broadId = `m${nextId++}`;
     const stub = addMonster(
-      createFounder(state.species, {
+      createFounder(species, {
         id: stubId,
         seed: `${label}-stub`,
         name: `${label} Stubhorn`,
@@ -509,7 +728,7 @@ function carrierDemo(): void {
       }),
     );
     const broad = addMonster(
-      createFounder(state.species, {
+      createFounder(species, {
         id: broadId,
         seed: `${label}-broad`,
         name: `${label} Broadhorn`,
@@ -522,7 +741,7 @@ function carrierDemo(): void {
     );
 
     const childId = `m${nextId++}`;
-    let child = createOffspring(state.species, stub, broad, {
+    let child = createOffspring(species, stub, broad, {
       id: childId,
       seed: `${label}-carrier`,
       name: `${label} Carrier`,
@@ -549,37 +768,11 @@ function carrierDemo(): void {
 // Boot
 // ---------------------------------------------------------------------------
 
-/**
- * Species data source.
- *
- * The standalone build (`npm run bundle`) inlines the JSON on `globalThis` so
- * the page opens straight from a file with no server and no network. Served
- * from `npm run serve`, it fetches the same file from disk instead, so editing
- * species data during development needs no rebuild.
- */
-declare global {
-  // eslint-disable-next-line no-var
-  var __RANCHBORN_SPECIES__: unknown | undefined;
-}
-
-async function loadSpeciesData(): Promise<unknown> {
-  if (globalThis.__RANCHBORN_SPECIES__ !== undefined) {
-    return globalThis.__RANCHBORN_SPECIES__;
-  }
-  const response = await fetch('/sim/data/species/bramblehorn.json');
-  if (!response.ok) {
-    throw new Error(
-      `could not load species data (${response.status}). Run "npm run serve" from the repo root.`,
-    );
-  }
-  return response.json();
-}
-
 async function boot(): Promise<void> {
-  const species = parseSpecies(await loadSpeciesData(), 'bramblehorn');
+  const speciesById = await loadAllSpecies();
 
   state = {
-    species,
+    speciesById,
     monsters: new Map(),
     order: [],
     selectedA: null,
@@ -590,9 +783,15 @@ async function boot(): Promise<void> {
     showGuide: true,
     ranchDay: 1,
     log: [],
+    breeds: [],
+    breedName: '',
   };
 
-  for (let i = 0; i < 4; i++) newFounder();
+  // Two adults of each species, so every one of them can be bred immediately.
+  for (const speciesId of SPECIES_IDS) {
+    newFounder(speciesId);
+    newFounder(speciesId);
+  }
 
   const app = document.getElementById('app')!;
 
@@ -616,13 +815,22 @@ async function boot(): Promise<void> {
       case 'end-day':
         endRanchDay();
         break;
-      case 'add-founder':
-        newFounder();
-        render();
+      case 'add-founder': {
+        const speciesId = target.dataset['species'];
+        if (speciesId) {
+          newFounder(speciesId);
+          render();
+        }
         break;
+      }
       case 'carrier-demo':
         carrierDemo();
         break;
+      case 'register-breed': {
+        const id = target.dataset['id'];
+        if (id) doRegisterBreed(id);
+        break;
+      }
       case 'dismiss-guide':
         state.showGuide = false;
         render();
@@ -642,6 +850,16 @@ async function boot(): Promise<void> {
       state.advanced = (target as HTMLInputElement).checked;
       render();
     }
+  });
+
+  // Typing the breed name must not trigger a re-render — that would move focus
+  // out of the field on every keystroke. Update state and toggle the button.
+  app.addEventListener('input', (event) => {
+    const target = event.target as HTMLElement;
+    if (target.dataset['action'] !== 'breed-name') return;
+    state.breedName = (target as HTMLInputElement).value;
+    const button = app.querySelector<HTMLButtonElement>('[data-action="register-breed"]');
+    if (button) button.disabled = state.breedName.trim().length === 0;
   });
 
   // Keyboard parity with tapping, per the accessibility notes (§33).
